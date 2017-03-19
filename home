@@ -1,0 +1,40 @@
+#! /bin/bash -ue
+
+dual_screen() {
+    local opts="--mode 1920x1080 --above LVDS1"
+    [[ ${#@} > 0 ]] && opts="--off"
+    
+    ~/scripts/extend-display DP1 $opts
+}
+
+# Faster response time for two-finger scroll, else it'll try to select
+# text, or whatnot.
+wacom_init_touch() {
+    xsetwacom --set "$(wacom_get_id touch)" TapTime 100
+}
+
+# Only interact with external monitor with the stylus.
+wacom_set_pen_output() {
+    xsetwacom --set "$(wacom_get_id stylus)" MapToOutput DP1
+    xsetwacom --set "$(wacom_get_id eraser)" MapToOutput DP1
+}
+
+wacom_get_id() {
+    local type=${1^^}
+    xsetwacom --list devices | grep "$type" |
+        awk 'BEGIN { FS="\t" } { print $2 }' |
+        awk '{ print $2 }'
+}
+
+wacom_get_name() {
+    local type=${1^^}
+    xsetwacom --list devices | grep "$type" |
+        awk 'BEGIN { FS="\t" } { print $1 }' |
+        sed -r 's/[\t ]+$//'
+}
+
+wacom_get_params() {
+    local name=$(wacom_get_name "$1"); shift
+
+    xsetwacom --get "$name" $@
+}    

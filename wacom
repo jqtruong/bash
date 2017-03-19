@@ -1,0 +1,35 @@
+#! /bin/bash -ue
+
+##########
+# ready? #
+##########
+declare -A DEVICES=()
+
+add_to_DEVICES() {
+    for i in "$@"; do
+        DEVICES[${i%:*}]=${i#*:}
+    done
+}
+
+get_types_and_ids() {
+    xsetwacom --list devices |
+        # Only get types and ids, in that order.
+        awk 'BEGIN { FS="\t" } { print $3 " " $2 }' |
+        # Convert into declarable array format.
+        sed 's/type: \([A-Z]\+\) \+id: \([0-9]\+\)/\1:\2/'
+}
+
+init() {
+    xsetwacom --set "${DEVICES[TOUCH]}" TapTime 100
+    xsetwacom --set "${DEVICES[STYLUS]}" MapToOutput DP1
+    xsetwacom --set "${DEVICES[ERASER]}" MapToOutput DP1
+}
+
+########
+# set. #
+########
+add_to_DEVICES $(get_types_and_ids)
+
+#######
+# go! #
+#######

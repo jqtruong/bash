@@ -1,0 +1,14 @@
+#! /bin/bash -e
+
+while true; do 
+    inotifywait -r -e modify "$1" --exclude '\.lisp$' && {
+        # Seems i need a tiny delay for lisp, as if still loads the old file.
+        sleep .1
+
+        # Refresh chrome.
+        xdotool search --desktop 0 "Chromium" \
+                windowactivate --sync \
+                # @todo: make tab a script parameter.
+                key --clearmodifiers ctrl+1 ctrl+r
+    }
+done

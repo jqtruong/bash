@@ -1,0 +1,17 @@
+#! /bin/bash -ue
+
+##########
+# ready? #
+##########
+
+########
+# set. #
+########
+INT=LVDS1
+EXT=$1; shift
+
+#######
+# go! #
+#######
+xrandr --output $INT --auto --primary \
+       --output $EXT "$@"

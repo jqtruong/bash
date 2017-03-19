@@ -1,0 +1,70 @@
+#! /bin/bash -ue
+
+##########
+# ready? #
+##########
+replace_holders() {
+    # Updates global array `$VALUES`.
+    
+    local noquote= re=
+    for var in $@; do
+        # reset local vars
+        noquote=
+
+        # Make sure 'values' is not one of the placeholder names.
+        re=^VALUES\\b
+        [[ $var =~ $re ]] && {
+            echo "'VALUES' is not a valid placeholder name."
+            exit 1
+        }
+
+        # Legend:
+        # ! - as is, no quotes
+        # , - array to comman-separated string
+        if [[ $var =~ !$ ]]; then
+            var=${var%!}
+            val=${!var}
+            noquote=y
+
+        elif [[ $var =~ ,$ ]]; then
+            var=${var%,}
+            eval val=(\"\${$var[@]}\")
+            val="$(printf "%s," "${val[@]}" | sed 's/,$//')"
+
+        else
+            val=${!var}
+        fi
+
+        [[ ! $noquote ]] && {
+            [[ "$val" ]] && val="\"$val\"" || val="''"
+            noquote=
+        }
+
+        VALUES+=("$val")
+    done
+}
+
+########
+# set. #
+########
+IN=$1
+PLACEHOLDERS=(
+    $(grep -Eo "\{\{.+\}\}" "$IN"  | # get all strings that surrounded by {{...}}
+             tr -d ' ' | tr -d '{' | tr -d '}') # trim and strip out {{ and }}
+)
+OUT=$2
+VARS=$3
+VALUES=()
+
+#######
+# go! #
+#######
+. "$VARS"
+
+# Global $VALUES array gets filled here.
+replace_holders ${PLACEHOLDERS[@]}
+
+# Replace placeholders with `%s` to use with `printf`.
+CONTENT="$(sed -r 's/\{\{.*\}\}/%s/g' $IN)"
+
+printf > $OUT "$CONTENT" "${VALUES[@]}"
