@@ -1,0 +1,9 @@
+#! /bin/bash -e
+
+BROWSER=$1
+TAB=$2
+
+# Refresh chrome.
+xdotool search --desktop 0 "$BROWSER" \
+        windowactivate --sync \
+        key ctrl+"$TAB" ctrl+r
