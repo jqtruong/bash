@@ -13,5 +13,10 @@ EXT=$1; shift
 #######
 # go! #
 #######
-xrandr --output $INT --auto --primary \
-       --output $EXT "$@"
+if (xrandr | grep "$EXT disconnected"); then
+    echo "bye"
+    xrandr --output $INT --auto --output $EXT --off 
+else
+    xrandr --output $INT --auto --primary \
+           --output $EXT --auto "$@"
+fi

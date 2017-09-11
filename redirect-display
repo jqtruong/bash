@@ -1,0 +1,29 @@
+#! /bin/bash -ue
+
+##########
+# ready? #
+##########
+
+########
+# set. #
+########
+ext=$(xrandr |
+          grep -Ei "(vga|dp)1 connected" | # VGA1 or DP1 if connected
+          cut -d' ' -f1 |                  # just the display name
+          head -1)                         # first one found if both are connected
+
+opts="--auto --primary"
+
+#######
+# go! #
+#######
+if [[ "$ext" ]]; then
+    xrandr --output LVDS1 --off \
+           --output "$ext" $opts
+else
+    xrandr --output LVDS1 $opts \
+           --output DP1 --off \
+           # TOOD is there a better way to only turn the previously connected
+           # display off?
+           --output VGA1 --off  
+fi

@@ -3,7 +3,7 @@
 BROWSER=$1
 TAB=$2
 
-# Refresh chrome.
+# Refresh browser.
 xdotool search --desktop 0 "$BROWSER" \
         windowactivate --sync \
         key ctrl+"$TAB" ctrl+r

@@ -1,0 +1,7 @@
+#! /bin/bash -e
+
+goback=$1
+
+# Refresh Chrome's first tab, then focus on emacs.
+refresh-browser "Chromium" 1
+[[ "$1" ]] && xdotool key ctrl+i e
