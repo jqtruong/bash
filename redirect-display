@@ -22,8 +22,6 @@ if [[ "$ext" ]]; then
            --output "$ext" $opts
 else
     xrandr --output LVDS1 $opts \
-           --output DP1 --off \
-           # TOOD is there a better way to only turn the previously connected
-           # display off?
-           --output VGA1 --off  
+           --output DP1   --off \
+           --output VGA1  --off
 fi

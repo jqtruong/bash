@@ -7,16 +7,19 @@
 ########
 # set. #
 ########
-INT=LVDS1
-EXT=$1; shift
+ext=$(xrandr |
+          grep -Ei "(vga|dp)1 connected" | # VGA1 or DP1 if connected
+          cut -d' ' -f1 |                  # just the display name
+          head -1)                         # first one found if both are connected
 
 #######
 # go! #
 #######
-if (xrandr | grep "$EXT disconnected"); then
-    echo "bye"
-    xrandr --output $INT --auto --output $EXT --off 
+if [[ "$ext" ]]; then
+    xrandr --output LVDS1  --auto --primary \
+           --output "$ext" --auto --above LVDS1
 else
-    xrandr --output $INT --auto --primary \
-           --output $EXT --auto "$@"
+    xrandr --output LVDS1 --auto --primary \
+           --output DP1   --off \
+           --output VGA1  --off
 fi
