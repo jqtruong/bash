@@ -1,0 +1,11 @@
+#! /bin/bash -e
+
+URI=$1
+xdotool search --desktop 0 "Chromium" \
+        windowactivate --sync \
+        key ctrl+t \
+        type "$URI"
+
+# `type' above consumes the COMMAND_CHAIN, so having to issue a new command.
+xdotool search --desktop 0 "Chromium" \
+        key Return

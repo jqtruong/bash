@@ -1,0 +1,13 @@
+#!/bin/bash -e
+
+help() {
+    echo "$(basename "$BASH_SOURCE") <value> <from base> <to one or more bases>"
+}
+    
+VAL=$1; [[ -z "$VAL" || "$VAL" =~ -h|--help ]] && help || shift
+FROM=$1; shift
+TO=$@
+
+for i in $TO; do
+    echo "obase=$i;ibase=$FROM; ${VAL^^}" | bc # ibase before obase!
+done

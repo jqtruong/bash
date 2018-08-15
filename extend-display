@@ -8,18 +8,18 @@
 # set. #
 ########
 ext=$(xrandr |
-          grep -Ei "(vga|dp)1 connected" | # VGA1 or DP1 if connected
-          cut -d' ' -f1 |                  # just the display name
-          head -1)                         # first one found if both are connected
+          grep -Ei "(vga|dp)-1 connected" | # VGA-1 or DP-1 if connected
+          cut -d' ' -f1 |                   # just the display name
+          head -1)              # first one found if both are connected
 
 #######
 # go! #
 #######
 if [[ "$ext" ]]; then
-    xrandr --output LVDS1  --auto --primary \
-           --output "$ext" --auto --above LVDS1
+    xrandr --output LVDS-1  --auto --primary \
+           --output "$ext" --auto --left-of LVDS-1
 else
-    xrandr --output LVDS1 --auto --primary \
-           --output DP1   --off \
-           --output VGA1  --off
+    xrandr --output LVDS-1 --auto --primary \
+           --output DP-1   --off \
+           --output VGA-1  --off
 fi
