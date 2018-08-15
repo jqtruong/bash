@@ -1,0 +1,20 @@
+pcm.usb
+{
+    type hw
+    card 1
+}
+
+pcm.!default
+{
+    type asym
+    playback.pcm
+    {
+        type plug
+        slave.pcm "%s"
+    }
+    capture.pcm
+    {
+        type plug
+        slave.pcm "%s"
+    }
+}

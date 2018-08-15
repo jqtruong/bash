@@ -1,0 +1,17 @@
+#!/bin/bash -e
+
+SOURCES=$(pacmd list-sources |
+              grep -e 'index:' -e 'name:' |
+              sed 's/\*//' |    # remove selected/default marker
+              sed 's/[<>]//g' | # and brackets around names
+              awk '{print $2}' |
+              sed '$!N;s/\n/:/')
+
+index=$1
+for src in $SOURCES; do
+    [[ "$src" =~ ^$index: ]] && echo ${src#*:}
+done
+
+# echo -n "Select source by index: "
+# pacmd list sources | grep "\.monitor" | grep "Jabra"
+# parec -d alsa_output.usb-0b0e_Jabra_EVOLVE_65_501AA56AB5E5013A00-00.analog-stereo.monitor --file-format=wav /tmp/output.wav

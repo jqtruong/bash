@@ -1,0 +1,19 @@
+#!/bin/bash -e
+
+PLAYBACK=dmix
+CAPTURE=dnsoop
+
+if [[ ${#@} -gt 0 && ${#@} -lt 3 ]]; then
+    case ${#@} in
+        1) PLAYBACK=$1
+           CAPTURE=$1
+           ;;
+
+        2) PLAYBACK=$1
+           CAPTURE=$2
+    esac
+fi
+
+RC_CONTENT=$(printf "$(<$BASH_SOURCE-fmt.rc)" "$PLAYBACK" "$CAPTURE")
+echo "$RC_CONTENT" >~/.asoundrc
+# alsactl kill rescan
