@@ -1,3 +1,4 @@
 #!/bin/bash -e
 
-sudo create_ap wlp3s0 wlp3s0 JQT-AP JoelleWillWin
+interface=$(iw dev | grep Interface | cut -d' ' -f2)
+sudo create_ap "$interface" "$interface" JQT-AP JoelleWillWin

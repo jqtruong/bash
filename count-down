@@ -1,0 +1,8 @@
+#!/bin/bash
+
+for i in $(seq 1 $1); do
+    printf "\rsleeping for %ds" $(( $1 - SECONDS ))
+    sleep 1
+done
+
+printf "\r\033[Kdone sleeping for $1 seconds\n"

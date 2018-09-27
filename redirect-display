@@ -1,27 +1,51 @@
-#! /bin/bash -ue
+#! /bin/bash -e
 
 ##########
 # ready? #
 ##########
+date
 
 ########
 # set. #
 ########
 ext=$(xrandr |
-          grep -Ei "(vga|dp)-1 connected" | # VGA-1 or DP-1 if connected
-          cut -d' ' -f1 |                   # just the display name
-          head -1)              # first one found if both are connected
+          grep -Ei "^(vga|dp|hdmi)1 connected" | # VGA-1 or DP-1 if connected
+          cut -d' ' -f1 |                         # just the display name
 
-opts="--auto --primary"
+          head -1)              # first one found if both are connected
+turn_ext_on=
+turn_ext_off=
+turn_main_on=
 
 #######
 # go! #
 #######
 if [[ "$ext" ]]; then
-    xrandr --output LVDS-1 --off \
-           --output "$ext" $opts
+    if [[ $(xrandr | grep -e "^$ext connected primary") ]]; then
+        turn_main_on=1
+        turn_ext_off=1
+    else
+        turn_ext_on=1
+    fi
 else
-    xrandr --output LVDS-1 $opts \
-           --output DP-1   --off \
-           --output VGA-1  --off
+    turn_main_on=1
+fi
+
+if [[ $turn_main_on ]]; then
+    if [[ $(xrandr | grep -e "^eDP1 connected primary") ]]; then
+        echo "main is already on; nothing to do"
+    elif [[ $turn_ext_off ]]; then
+        echo "turning main on and $ext off"
+        xrandr --output eDP1 --auto --primary \
+               --output "$ext" --off
+    else
+        echo "just turning main on"
+        xrandr --output eDP1 --auto --primary
+    fi
+elif [[ $turn_ext_on ]]; then
+    echo "turning main off and $ext on"
+    xrandr --output eDP1 --off \
+           --output "$ext" --auto --primary --scale 1.17x1.39
+else
+    echo "not sure what i was meant to do"
 fi
