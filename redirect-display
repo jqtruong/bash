@@ -9,9 +9,8 @@ date
 # set. #
 ########
 ext=$(xrandr |
-          grep -Ei "^(vga|dp|hdmi)1 connected" | # VGA-1 or DP-1 if connected
-          cut -d' ' -f1 |                         # just the display name
-
+          grep -Ei "^(vga|dp|hdmi)-?1 connected" | # VGA-1 or DP-1 if connected
+          cut -d' ' -f1 |                        # just the display name
           head -1)              # first one found if both are connected
 turn_ext_on=
 turn_ext_off=
