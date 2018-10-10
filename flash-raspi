@@ -1,3 +1,3 @@
 #!/bin/bash -e
 
-sudo dd bs=4M status=progresse if="$1" of=/dev/sda conv=fsync
+sudo dd bs=4M if="$1" of=/dev/sda status=progress conv=fsync

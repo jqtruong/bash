@@ -28,11 +28,22 @@ toggle() {
 
 get_vol() {
     amixer get Master |
+        awk -F"[][]" '/dB/ {printf "%s", $2}' |
+        sed 's/%//'
+}
+
+echo_vol() {
+    amixer get Master |
         awk -F"[][]" '/dB/ {printf "%s %s", $2, $6}'
 }
 
 set_vol() {
-    local vol=$1
+    local vol=$1 \
+          cur=$(get_vol)
+
+    if [[ $vol =~ ^[+-] ]]; then
+        vol=$((cur $vol)) 
+    fi
 
     if [[ $vol -gt 100 ]]; then
         vol=100
@@ -52,4 +63,4 @@ set_vol() {
     esac
 } >/dev/null
 
-echo "-- $(get_vol) --"
+echo "-- $(echo_vol) --"
