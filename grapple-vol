@@ -1,0 +1,66 @@
+#!/bin/bash
+
+is_master_on() {
+    ON=$(amixer get Master |
+             awk -F"[][]" '/dB/ {printf "%s", $6}')
+
+    [[ $ON = on ]]
+}
+
+mute() {
+    amixer set Master mute
+}
+
+unmute() {
+    amixer set Master unmute
+    # mute turns these two off, so need to unmute them as well
+    amixer set Headphone unmute
+    # whether Speaker is muted or not, if Headphone is plugged in, Speaker will
+    # still have a volume set to 0%. best to leave that alone.
+    amixer set Speaker unmute
+}
+
+toggle() {
+    amixer set Master toggle && {
+        ! is_master_on || unmute
+    }
+}
+
+get_vol() {
+    amixer get Master |
+        awk -F"[][]" '/dB/ {printf "%s", $2}' |
+        sed 's/%//'
+}
+
+echo_vol() {
+    amixer get Master |
+        awk -F"[][]" '/dB/ {printf "%s %s", $2, $6}'
+}
+
+set_vol() {
+    local vol=$1 \
+          cur=$(get_vol)
+
+    if [[ $vol =~ ^[+-] ]]; then
+        vol=$((cur $vol)) 
+    fi
+
+    if [[ $vol -gt 100 ]]; then
+        vol=100
+    elif [[ $vol -lt 0 ]]; then
+        vol=0
+    fi
+
+    amixer set Master $vol%
+}
+
+{
+    case $1 in
+        m) mute       ;;
+        u) unmute     ;;
+        \!) toggle    ;;
+        *) set_vol $1 ;;
+    esac
+} >/dev/null
+
+echo "-- $(echo_vol) --"
