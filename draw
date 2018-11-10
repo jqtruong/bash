@@ -1,0 +1,3 @@
+#!/bin/bash
+
+convert -delay 50 bag_frame1.gif bag_frame2.gif -loop 0 flicker_cmp.gif

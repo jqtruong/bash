@@ -1,0 +1,5 @@
+#!/bin/bash
+
+xterm -e "cat $(date) >> /tmp/kitty.txt"
+wait
+echo "hi"
