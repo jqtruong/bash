@@ -18,6 +18,8 @@ unmute() {
     # whether Speaker is muted or not, if Headphone is plugged in, Speaker will
     # still have a volume set to 0%. best to leave that alone.
     amixer set Speaker unmute
+    # not sure since when (maybe linux 5) but i need this now
+    amixer set 'Bass Speaker' unmute
 }
 
 toggle() {
@@ -27,28 +29,55 @@ toggle() {
 }
 
 get_vol() {
-    amixer get Master |
-        awk -F"[][]" '/dB/ {printf "%s", $2}' |
-        sed 's/%//'
+    amixer get Master                       |
+        grep "Playback channels: "          |
+        awk -F: '{ print $2 }'              |
+        awk 'BEGIN { RS="-" } { print $0 }' |
+        sed -E -e 's/^ *//' -e 's/ *$//'    |
+        {
+            read SPEAKER
+            if [[ $SPEAKER ]]
+            then
+                volume_data=$( amixer get Master |
+                                   awk -F"[][]" "/^ *$SPEAKER/ { print \$2 \" \"\$4 }" )
+                read volume on_off <<<$(echo "$volume_data")
+                echo ${volume/\%/}
+            fi
+        }
 }
 
 echo_vol() {
-    amixer get Master |
-        awk -F"[][]" '/dB/ {printf "%s %s", $2, $6}'
+    amixer get Master                       |
+        grep "Playback channels: "          |
+        awk -F: '{ print $2 }'              |
+        awk 'BEGIN { RS="-" } { print $0 }' |
+        sed -E -e 's/^ *//' -e 's/ *$//'    |
+        {
+            read SPEAKER        # if multiple speakers and it's ok for this
+                                # laptop, just read one value
+
+            if [[ $SPEAKER ]]
+            then
+                volume=$( amixer get Master |
+                              awk -F"[][]" "/^ *$SPEAKER/ { print \$2 \" \"\$4 }" )
+                echo "$volume"
+            fi
+        }
 }
 
 set_vol() {
     local vol=$1 \
           cur=$(get_vol)
 
-    if [[ $vol =~ ^[+-] ]]; then
-        vol=$((cur $vol)) 
+    if [[ $vol =~ ^[+-] ]]      # eg. -2, +3, etc.
+    then vol=$((cur $vol))      # vol = (vol - 2) or (vol + 3)
+    # else vol is just a number depicting a percentage to set
     fi
 
-    if [[ $vol -gt 100 ]]; then
-        vol=100
-    elif [[ $vol -lt 0 ]]; then
-        vol=0
+    if [[ $vol -gt 100 ]]
+    then vol=100
+    elif [[ $vol -lt 0 ]]
+    then vol=0
     fi
 
     amixer set Master $vol%
@@ -63,4 +92,4 @@ set_vol() {
     esac
 } >/dev/null
 
-echo "-- $(echo_vol) --"
+echo_vol
