@@ -1,8 +1,45 @@
-#!/bin/bash -e
+#!/bin/bash
 
+########
+# rdy? #
+########
+calc() {
+    bc -l <<< "$@"
+}
+
+parse() {
+    echo "$@" | sed -E "s/PI|pi/$PI/g"
+}
+
+start() {
+    while true
+    do
+        echo
+        read -ep "Calculator: " STRING
+        STRING=$(parse "$STRING")
+        store "$STRING"
+        calc "$STRING"
+    done
+}
+
+store() {
+    LAST_STRING="$@"
+    HIST+=("$@")
+    # printf -- "- %s\n" "${HIST[@]}"
+}
+
+########
+# set. #
+########
 if [[ -z "$PI" ]]; then
     PI=$(echo "scale=10; 4*a(1)" | bc -l)
 fi
 
-# e.g. calc scale=2\; 3/2 + 4 - .5 -> 5.00
-echo "${@//PI/$PI}" | bc -l
+HIST=()
+LAST_STRING=
+STRING=
+
+########
+# go!! #
+########
+start

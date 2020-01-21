@@ -60,7 +60,7 @@ echo_vol() {
             then
                 volume=$( amixer get Master |
                               awk -F"[][]" "/^ *$SPEAKER/ { print \$2 \" \"\$4 }" )
-                echo "$volume"
+                echo -n "$volume"
             fi
         }
 }

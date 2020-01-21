@@ -1,8 +1,8 @@
 #!/bin/bash
 
-a=$1
-echo "hi" | if [ -n $a ]; then
-    echo $a
-else
-    echo "bye"
-fi
+# convert rose: \
+#         -background skyblue \
+#         -extent 100x60 \
+#         extent_enlarge.gif
+
+convert rose: -extent 1000%x1000% - 

@@ -1,0 +1,37 @@
+* =read=
+  #+BEGIN_SRC sh
+    #!/bin/bash
+
+    read hi <<EOF
+    hello
+    you
+    EOF
+
+    echo $hi                        # hello
+    echo "$hi"                      # hello
+
+    read -d '' hi <<EOF
+    hello
+    you
+    EOF
+
+    echo $hi                        # hello you
+    echo "$hi"                      # hello\nyou
+
+    read -d 'l' hi <<EOF
+    hello
+    you
+    EOF
+
+    echo $hi                        # he
+    echo "$hi"                      # he
+  #+END_SRC
+
+  #+RESULTS:
+  | hello |     |
+  | hello |     |
+  | hello | you |
+  | hello |     |
+  | you   |     |
+  | he    |     |
+  | he    |     |

@@ -1,4 +1,10 @@
 #!/bin/bash -e
 
 interface=$(iw dev | grep Interface | cut -d' ' -f2)
-sudo create_ap "$interface" "$interface" JQT-AP JoelleWillWin
+if [[ $interface =~ ^ap ]]
+then
+    echo >&2 "An AP already exists; exiting."
+    # to delete ap0: `sudo iw dev ap0 del'
+else
+    sudo create_ap "$interface" "$interface" JQT-AP JoelleWillWin
+fi

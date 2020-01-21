@@ -37,7 +37,7 @@
 # Advanced pre-prepared label handling (broken? Why?)
 #
 #   convert -size 100x100 xc:red xc:blue -set color '%[pixel:u]' miff:- |\
-#       flicker_cmp -l '%[color]' -d 100 -
+    #       flicker_cmp -l '%[color]' -d 100 -
 #
 ###
 #
@@ -49,10 +49,10 @@ PROGNAME=`type $0 | awk '{print $3}'`  # search for executable on path
 PROGDIR=`dirname $PROGNAME`            # extract directory of program
 PROGNAME=`basename $PROGNAME`          # base name of program
 Usage() {                              # output the script comments as docs
-  echo >&2 "$PROGNAME:" "$@"
-  sed >&2 -n '/^###/q; /^#/!q; s/^#//; s/^ //; 3s/^/Usage: /; 2,$ p' \
-          "$PROGDIR/$PROGNAME"
-  exit 10;
+    echo >&2 "$PROGNAME:" "$@"
+    sed >&2 -n '/^###/q; /^#/!q; s/^#//; s/^ //; 3s/^/Usage: /; 2,$ p' \
+            "$PROGDIR/$PROGNAME"
+    exit 10;
 }
 
 resize=''
@@ -62,65 +62,65 @@ delay=50
 output=''
 
 while [  $# -gt 0 ]; do
-  case "$1" in
-  --help|--doc*) Usage ;;
+    case "$1" in
+        --help|--doc*) Usage ;;
 
-  -b|-background)   shift; color="$1" ;;    # label/background fill color
-  -l|-label)  shift; label="$1" ;;          # set displayed label to this string
-  -d|-delay)  shift; delay="$1" ;;          # animation delay
+        -b|-background)   shift; color="$1" ;;    # label/background fill color
+        -l|-label)  shift; label="$1" ;;          # set displayed label to this string
+        -d|-delay)  shift; delay="$1" ;;          # animation delay
 
-  -c|-crop)   shift; crop="$1" ;;           # crop/extent images
-  -r|-resize) shift; resize="-resize $1" ;; # resize image to this size
-  -s|-scale)  shift; resize="-scale $1" ;;  # scale image to this size
-  -j|-jpeg)   shift; jpeg="-define jpeg:size=$1" ;;
+        -c|-crop)   shift; crop="$1" ;;           # crop/extent images
+        -r|-resize) shift; resize="-resize $1" ;; # resize image to this size
+        -s|-scale)  shift; resize="-scale $1" ;;  # scale image to this size
+        -j|-jpeg)   shift; jpeg="-define jpeg:size=$1" ;;
 
-  -o|-output) shift; output="$1" ;;         # output to file, don't display
+        -o|-output) shift; output="$1" ;;         # output to file, don't display
 
-  -)  break ;;           # STDIN,  end of user options
-  --) shift; break ;;    # end of user options
-  -*) Usage "Unknown option \"$1\"" ;;
-  *)  break ;;           # end of user options
+        -)  break ;;           # STDIN,  end of user options
+        --) shift; break ;;    # end of user options
+        -*) Usage "Unknown option \"$1\"" ;;
+        *)  break ;;           # end of user options
 
-  esac
-  shift   # next option
+    esac
+    shift   # next option
 done
 
 # add crop/extent option before any resize
 # Not this goes wrong with negative offsets
 # but that does not make sense, so okay!
 if [ "X$crop" != 'X' ]; then
-  case "$crop" in
-    *[+-]*)
-      extent=`echo "$crop" | sed 's/[+-].*//'`
-      ;;
-    *)
-      extent="$crop"
-      crop="$crop+0+0"
-      gravity="-gravity center"
-      ;;
-  esac
-  resize="$gravity -crop $crop! -extent $extent $resize"
+    case "$crop" in
+        *[+-]*)
+            extent=`echo "$crop" | sed 's/[+-].*//'`
+            ;;
+        *)
+            extent="$crop"
+            crop="$crop+0+0"
+            gravity="-gravity center"
+            ;;
+    esac
+    resize="$gravity -crop $crop! -extent $extent $resize"
 fi
 
 # set labeling defaults, different for stdin vs filenames
 if [ "X$label" = "X" ]; then
-  case "$*" in
-    -|*:-) label='%s:%l' ;;
-    *)     label='%f' ;;
-  esac
+    case "$*" in
+        -|*:-) label='%s:%l' ;;
+        *)     label='%f' ;;
+    esac
 fi
 
 #convert $jpegsize \
-#convert "$@" -set label "$label" -background $color $resize miff:- |
+    #convert "$@" -set label "$label" -background $color $resize miff:- |
 # Do each image seperatally as they could be very large
 for img in "$@"; do
-  convert $jpeg "$img" -set label "$label" \
-          -background $color $resize miff:-
+    convert $jpeg "$img" -set label "$label" \
+            -background $color $resize miff:-
 done |
-  montage - -geometry +0+0 -tile 1x1 -background $color miff:- |
+    montage - -geometry +0+0 -tile 1x1 -background $color miff:- |
     if [ "X$output" = "X" ]; then
-      animate -delay "$delay" -dispose background -loop 0 -
+        animate -delay "$delay" -dispose background -loop 0 -
     else
-      convert - -delay "$delay" -dispose background -loop 0 "$output"
+        convert - -delay "$delay" -dispose background -loop 0 "$output"
     fi
 

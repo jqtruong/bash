@@ -1,0 +1,52 @@
+#!/bin/bash
+
+move_cursor() {
+    local dir=$([[ $1 -eq 0 ]] && echo "start" || echo "end")
+
+    echo -en "\rCalculator: "
+}
+
+next_cmd() {
+    echo >&2 "next command"
+}
+
+prev_cmd() {
+    echo >&2 "prev command"
+}
+
+backspace() {
+    if [[ -n "$STRING" ]]
+    then STRING=${STRING:0:-1}
+         echo -en "\r\033[2K"
+    fi
+}
+
+STRING=""
+
+echo -en "Calculator: "
+
+while IFS= read -rsn1 c && [[ $c ]]
+do
+    # printf " = %x\n" "'$c"
+    case $c in
+        $'\x1')                 # ^A
+            move_cursor 0;;
+
+        $'\x5')                 # ^E
+            move_cursor 1;;
+
+        $'\x8')                 # ^H
+            backspace;;
+
+        $'\x10')                # ^P
+            prev_cmd;;
+
+        $'\xe')                 # ^N
+            next_cmd;;
+
+        *) STRING+="$c";;
+    esac
+    echo -en "\rCalculator: $STRING"
+done
+
+echo; echo "Input was $STRING"
