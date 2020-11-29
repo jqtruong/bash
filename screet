@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Take screenshots of youtube running in the left window when frame is split in
+# thirds, and its width is 1280.
+
+mkdir -p /tmp/screets
+
+# window pixel width from `(window-pixel-width)'
+ww=1280                         # widht of window
+wwsb=15                         # width of window scrollbar
+wyvc=$((ww - wwsb))             # width of youtube video container
+
+# find pixel heights with `(window-pixel-height)'
+hw=1068                         # height of window
+hch=70                          # height of chrome header
+hyh=56                          # height of youtube header
+hyvc=$(((wyvc * 9) / 16 + 10))  # height of youtube video container 16:9 + 10px vertical padding!?
+ypc=$((hch + hyh))              # y pixel coordinate
+
+for i in {1..60}
+do scrot --autoselect 0,$ypc,$wyvc,$hyvc --overwrite /tmp/screets/$(date +%s%N).png
+done

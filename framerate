@@ -1,0 +1,18 @@
+#!/bin/bash
+
+###############################################################################
+# Calculate the microseconds (or maybe nano?) difference between images taken #
+# from `screet'                                                               #
+###############################################################################
+
+last_ts=
+
+for img in /tmp/screets/*
+do
+    img_name=$(basename $img)
+    img_ts=${img_name%.*}
+    if [[ -n $last_ts ]]
+    then echo $((img_ts - last_ts))
+    fi
+    last_ts=$img_ts
+done
