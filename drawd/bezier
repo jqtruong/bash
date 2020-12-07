@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# https://www.imagemagick.org/Usage/draw/#bezier
+
+# points that will form the control lines
+p1=10,10
+p2=30,90
+p3=25,10
+p4=50,50
+p5=50,50
+p6=75,90
+p7=70,10
+p8=90,40
+
+# control lines that the bezier curve will follow
+read -r -d '' clines <<EOF
+line $p1 $p2
+EOF
+
+# line $p3 $p4
+# line $p5 $p6
+# line $p7 $p8
+
+# x marks the control points
+exes=$(echo path "'"
+          for i in $(seq 1 4)
+          do echo "M $(eval echo \$p$i)   l -2,-2 +4,+4 -2,-2   l -2,+2 +4,-4 -2,+2"
+          done
+          echo "'")
+
+# echo "clines: $clines"
+# echo "exes: $exes"
+# exit
+
+convert -size 100x100 xc:skyblue -fill none         \
+        -draw "stroke gray $clines"                 \
+        -draw "stroke blue $exes"                   \
+        -draw "stroke red  bezier $p1 $p2" \
+        /tmp/draw_bezier_joined-4.gif
+
+# convert -size 100x100 xc:skyblue -fill none         \
+#         -draw "stroke gray $clines"                 \
+#         -draw "stroke blue $exes"                   \
+#         -draw "stroke red  bezier $p1 $p2  $p3 $p4" \
+#         -draw "stroke red  bezier $p5 $p6  $p7 $p8" \
+#         /tmp/draw_bezier_joined-4.gif

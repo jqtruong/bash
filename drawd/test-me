@@ -5,4 +5,9 @@
 #         -extent 100x60 \
 #         extent_enlarge.gif
 
-convert rose: -extent 1000%x1000% - 
+# convert rose: -extent 200%x100% - > /tmp/rose.jpg
+
+# a black pixel on a blue background
+convert -size 10x6 xc:skyblue  -fill black  \
+        -draw 'point 3,2' -draw 'point 6,4' \
+        -scale 100x60 /tmp/draw_point.gif

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# https://superuser.com/a/1331914
+scrot -s '/tmp/%Y-%m-%d_$wx$h.png' \
+      -e 'xclip -selection clipboard -target image/png -i $f'
+
+# cat $1 | xclip -selection clipboard -target image/png -i
