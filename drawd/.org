@@ -1,0 +1,132 @@
+* [2020-11-24 Tue]
+  time flies... what rain drops?
+
+* [2020-10-16 Fri]
+  record some rain drops
+
+* [2020-10-13 Tue]
+  i am still amazed by the star field so i think i should
+  spend some time learning what it does.
+
+** canvas
+   =xc:= stands for "X Constant" image, but it's typically a
+   blank, or colored, canvas.
+
+* [2020-10-04 Sun]
+  quadratic bezier curve sine wave:
+  #+begin_src sh
+    s=1000
+    quad_path="path 'M 0,$((s/2))   Q $((s/4)),0 $((s/2)),$((s/2))   T $s,$((s/2))'"
+    convert -size "$s"x"$s" xc:white \
+            -fill white -stroke black \
+            -draw "$quad_path" \
+            /tmp/load-icon.png
+  #+end_src
+
+  how to draw a wave, trigonometrically? actually, should
+  finish this load icon, which i will learn how to [[https://www.imagemagick.org/Usage/anim_basics/][animate a
+  gif]].
+
+  [[https://www.imagemagick.org/Usage/scripts/star_field][this]] is way too advanced but creates an awesome star
+  field.
+
+* [2020-10-03 Sat]
+  reviewing what i did... i want to make a bezier curve; the
+  command looks like this:
+  #+begin_src sh
+    convert -size 100x60 xc:skyblue -fill white -stroke black \
+            -draw "bezier   40,10 20,50 90,10 70,40" \
+            /tmp/draw_bezier.gif
+  #+end_src
+
+  i also have a [[file:bezier][script]] in the works.
+
+  does bezier work in pairs of control lines (4 points)?
+
+* [2020-09-20 Sun]
+  Going over ImageMagick's =draw= [[https://legacy.imagemagick.org/Usage/draw/][function]]. One can draw
+  points, rectangles, arcs/circles, etc.
+  
+  Draw two black dots (=point=) at given coordinates on a
+  sky-blue background:
+  #+begin_src sh
+    convert -size 10x6 xc:skyblue -fill black   \
+            -draw 'point 3,2' -draw 'point 6,4' \
+            -scale 100x60 /tmp/draw_point.gif
+  #+end_src
+
+  #+RESULTS:
+
+  Apparently, =color= does something [[https://legacy.imagemagick.org/Usage/draw/#color][different]] but i can't
+  tell from the following's result.
+  #+begin_src sh
+        convert -size 10x6 xc:skyblue  -fill black        \
+                -draw 'point 3,2' -draw 'color 6,3 point' \
+                -scale 100x60 /tmp/draw_color_point.gif
+  #+end_src
+
+  #+RESULTS:
+
+  Here shows the difference between =point= and =color
+  ... point=; the former blends itself whereas the latter
+  replaces it; ie. the fill color transparency is not taken
+  into account.
+  #+begin_src sh
+    convert -size 3x1 xc:red -matte -fill '#00F8' \
+            -draw 'point 1,0'                     \
+            -draw 'color 2,0 point'               \
+            -scale 50x50                          \
+            /tmp/draw_points.png
+  #+end_src
+
+  #+RESULTS:
+
+  Circles are like arcs, but are defined with edges from the
+  sides, vs radial lengths.
+  #+begin_src sh
+    convert -size 100x60 xc:skyblue -fill white -stroke black \
+            -draw "circle 50,30 40,10" /tmp/draw_circle.gif
+  #+end_src
+  that is 40 pixels from the left edge, and 10 pixels from
+  the top edge.
+
+  #+RESULTS:
+
+  although with circles, changing the second pair values
+  will pick one to force a single radial length. It seems to
+  prefer the left edge. The following uses the =ellipse=
+  primitive to achieve the same circle above.
+
+  #+begin_src sh
+    convert -size 100x60 xc:skyblue -fill white -stroke black \
+            -draw "ellipse 50,30 20,20 0,360" /tmp/draw_ellipse.gif
+  #+end_src
+
+  #+RESULTS:
+
+  Finally, the =line= primitive that i will need to draw
+  waves:
+  #+begin_src sh
+    convert -size 100x60 xc:skyblue -fill white -stroke black \
+            -draw "bezier   40,10 20,50 90,10 70,40" \
+            /tmp/draw_bezier.gif
+  #+end_src
+
+  #+RESULTS:
+
+  or actually i should also look into svg first...
+
+  #+RESULTS:
+
+** Notes
+   - =xc= stands for X Constant Image, which is also known
+     as a canvas of a given color.
+   - =fill= and =stroke= are used in conjunction with the
+     =draw= method
+   - =draw= primitives and their parameters:
+     | rectangle        | x,y | w,h |        |
+     | roundedrectangle | x,y | w,h | ∠₁, ∠₂ |
+     | arc              | x,y | w,h | ∠₁, ∠₂ |
+     | circle           | x,y | l,t |        |
+     | ellipse          | x,y | w,h | ∠₁, ∠₂ |
+

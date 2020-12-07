@@ -1,0 +1,18 @@
+#!/bin/bash
+
+one() {
+    convert -size "1000x400" xc: -fx 'rand()' -virtual-pixel tile \
+            -colorspace Gray -sigmoidal-contrast 120x0% -negate -blur 0x.3 \
+            \( -clone 0  -motion-blur 0x10+45  -motion-blur 0x10+45 \) \
+            -compose screen -background black -flatten  -normalize \
+            /tmp/learn.png
+}
+
+two() {
+    convert -size "1000x400" xc: -fx 'rand()' -virtual-pixel tile \
+            -colorspace Gray \
+            -sigmoidal-contrast 120x0% \
+            /tmp/learn.png
+}
+
+two

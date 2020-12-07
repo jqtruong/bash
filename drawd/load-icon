@@ -1,0 +1,19 @@
+#!/bin/bash
+
+#########
+# FUNCS #
+#########
+quad_path() {
+    local half=$((s/2))    \
+          quarter=$((s/4))
+
+    convert -size "$s"x"$s" xc:white  \
+            -fill white -stroke black \
+            -draw "path 'M 0,$half   Q $quarter,0 $half,$half   T $s,$half'" \
+            /tmp/load-icon.png
+}
+
+########
+# INIT #
+########
+s=1000
