@@ -1,0 +1,27 @@
+#!/bin/bash
+
+_is_func() {
+    declare -f $1
+} >/dev/null
+
+_process() {
+   while [[ $argc -gt 0 ]]
+    do 
+        if _is_func ${argv[0]}
+        then
+            func=${argv[0]}; _shift_argv
+            echo >&2 "[PROCESS: CALLING $func WITH ${argv[@]}]"
+            $func ${argv[@]} 
+        else       
+            echo >&2 "[ERROR: func ${argv[0]} does not exist]"
+            break
+        fi
+    done
+}
+
+_shift_argv() {
+    local n=${1-1}
+
+    argv=("${argv[@]:n}")
+    argc=$((argc - n))
+}

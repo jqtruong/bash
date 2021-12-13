@@ -1,0 +1,289 @@
+#!/bin/bash
+
+#########
+# FUNCS #
+#########
+
+_log() {
+    if [[ $DEBUG ]]
+    then cat <<EOF
+
+------------------------- CALLING --------------------------
+$func
+------------------------------------------------------------
+
+EOF
+    fi
+} >&2
+
+_guess_brch() {
+    local brch="develop" brchs=()
+
+    if [[ -n $1 ]]
+    then
+        brchs=($(git branch --list "*$1*" | sed -E -e "s/^ *//" -e "s/^\*//" ))
+        brch=$([[ ${#brchs[@]} -eq 0 ]] || echo ${brchs[0]})
+    fi
+
+    echo "$brch"
+}
+
+_usage() {
+    cat <<EOF
+Usage: $(basename $0) [debug|dry] <func> [<arg1, argN...>]
+Functions:
+- bs: simplified branch status
+- co: checkout <arg1:branch name>
+- contains: branch -a --contains <arg1:branch name>
+- del: delete <arg1:branch name> locally AND remotely
+- diff: diff --name-only HEAD~1
+- log: show last 10 commits "<hash> <message>" one-liners
+- pr: open the URL to create a new PR
+- push: to origin HEAD
+- url: echo the URL of the repository
+- visit: open the URL in a browser
+
+If \`\`DEBUG'' is set, more details is output, eg. the function.
+EOF
+}
+
+############
+# PROGRAMS #
+############
+
+# add file matching pattern, optionally by hunk
+# https://stackoverflow.com/a/1085191/578870
+add() {
+    local opts=()
+    if [[ ${argv[0]} == "p" || ${argv[0]} == "patch" ]]
+    then
+        opts+=("--patch")
+        _shift_argv
+    fi
+
+    local files=()
+    while ! _is_func ${argv[0]}
+    do
+        echo ${argv[0]}
+        if [[ -e ${argv[0]} ]]
+        then
+            files+=(${argv[0]})
+        else
+            echo "ERROR: file ${argv[0]} does not exist."
+        fi
+        _shift_argv
+    done
+
+    git add ${opts[@]} ${files[@]}
+}
+
+# branches list
+bl() {
+    local current="/^\*/ { a=substr(\$0, 2); print a \" (current)\"; }" \
+          rest="/^[^*]/ { print \$0 }"
+
+    git branch | \
+        awk "$current $rest" | \
+        { while read line; do echo "$((++i)). $line"; done }
+}
+
+# simplified branch status
+bs() {
+    git status -bs
+}
+
+commit() {
+    local with_msg=
+
+    if ! _is_func "${argv[0]}"
+    then
+        with_msg=("-m" "${argv[0]}")
+        _shift_argv
+    fi
+
+    git commit "${with_msg[@]}"
+}
+
+# list where $brch commit is included, within all branches' history
+contains() {
+    local brch=${argv[0]} \
+          tmp=$(mktemp /tmp/"$(basename $0)".contains.XXX)
+
+    if [[ $brch =~ ^[[:digit:]]+$ ]]
+    then brch=$(git branch | sed -Ee 's/ *\*?//g' -e "${brch}p;d")
+    fi
+
+    git branch -a --contains "$brch" >$tmp
+    [[ "$brch" =~ ^origin ]] ||
+        git branch -a --contains "origin/$brch" >>$tmp
+
+    cat $tmp | sort | uniq
+    rm $tmp
+}
+
+# checkout
+co() {
+    local brch=$(_guess_brch $1)
+
+    _shift_argv
+    git checkout "$brch"
+
+    # TODO pattern match against branch names
+}
+
+del() {
+    local brch=${argv[0]}
+
+    if [[ $brch =~ ^[[:digit:]]+$ ]]
+    then brch=$(git branch | sed -Ee 's/ *\*?//g' -e "${brch}p;d")
+    fi
+
+    git branch -d "$brch"
+    git push -d origin "$brch"
+}
+
+diff() {
+    if [[ $argc -eq 0 ]]
+    then git diff --color | less -R
+
+    elif [[ $1 =~ \?|help ]]
+    then
+        _shift_argv
+        cat <<EOF
+$(basename $0) ${FUNCNAME[0]} commands:
+- \`ls' just lists the filenames changed from HEAD
+  ls 1 -> HEAD^
+  ls 2 -> HEAD~2
+- \`a b' shows the diff for HEAD~A at file index B; see \`ls' for indices
+- \`gut diff 0 1' will get the diff for the first changed file (in the list) compared to HEAD~0
+EOF
+
+    elif [[ $1 == "ls" ]]
+    then
+        _shift_argv
+        [[ -z $2 ]] || _shift_argv
+        git diff --name-only HEAD~${2-0} | { while read line; do echo "$((++i)). $line"; done }
+
+    elif [[ $1 =~ [[:digit:]]+ && $2 =~ [[:digit:]]+ ]]
+    then
+        _shift_argv 2
+        git diff HEAD~$1 -- $(gut diff ls $1 | sed -e "$2p;d" | sed -E 's/^[[:digit:]]+\. //')
+
+    fi
+}
+
+help() {
+    _usage
+}
+
+fa() {
+    git fetch --all
+}
+
+# https://blog.andrewray.me/a-better-git-blame/
+# file history: git log -p -M --follow --stat --
+# log file:  -- $([[ -z $file ]] || echo "$file")
+
+log() {
+    local cmd=("git log")
+    local file=
+    local lim=10
+    local ref=
+
+    local format="%C(yellow)%h %Cred%ad %Cblue%an%Cgreen%d %Creset%s"
+    cmd+=("--pretty=format:'$format' --date=format:'%Y-%m-%d %H:%M:%S'")
+
+    while [[ $argc -gt 0 ]] && ! _is_func ${argv[0]}
+    do
+        case ${argv[0]} in
+            find)
+                _shift_argv
+                cmd+=("-S'${argv[0]}'")
+                ;;
+
+            for|in)
+                _shift_argv
+                file=${argv[0]}
+                ;;
+
+            ref)
+                _shift_argv
+                ref=${argv[0]}
+                ;;
+
+            *)
+                if [[ ${argv[0]} =~ [[:digit:]]+ ]]
+                then lim=${argv[0]}
+                fi
+        esac
+        _shift_argv
+    done
+
+    cmd+=("-$lim")
+    [[ -z $ref ]] || cmd+=("$ref")
+    [[ -z $file ]] || cmd+=("-- $file")
+    eval ${cmd[@]}
+}
+
+pr() {
+    open $url/compare/$(git rev-parse --abbrev-ref HEAD)
+}
+
+push() {
+    local force=
+
+    if [[ ${argv[0]} =~ ^(f|force)$ ]]
+    then
+        _shift_argv
+        force="--force"
+    fi
+
+    git push --set-upstream origin HEAD $force
+}
+
+stash() {
+    local msg=$1; _shift_argv
+    git stash push -p -m "$msg"
+}
+
+sub_rm() {
+    # https://stackoverflow.com/questions/1260748/how-do-i-remove-a-submodule/21211232#21211232
+
+    local submodule="${argv[0]}"
+
+    git rm "$submodule"
+    rm -rf ".git/modules/$submodule"
+    git config -f ".git/config"                 \
+        --remove-section "submodule.$submodule" \
+        2> /dev/null
+}
+
+url() {
+    echo $url
+}
+
+visit() {
+    open $url
+}
+
+
+#############
+# INIT VARS #
+#############
+
+. .blang
+
+argc=$#
+argv=("$@")
+
+base=$(git rev-parse --show-toplevel)
+addr=$(git config --get remote.origin.url) # git@bitbucket.org:locusdevelopment/data-explorer.git
+url=${addr#git@}              # bitbucket.org:locusdevelopment/data-explorer.git
+url=${url/://}                # bitbucket.org/locusdevelopment/data-explorer.git
+url=https://${url%.git}       # bitbucket.org/locusdevelopment/data-explorer
+
+
+########
+# MAIN #
+########
+_process
