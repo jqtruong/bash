@@ -1,0 +1,50 @@
+#!/bin/bash
+
+#########
+# FUNCS #
+#########
+
+_init() {
+    ((argc++))
+    argv+=(_search)
+}
+
+_search() {
+    _log "$_regexp"
+
+    local ifs=$IFS; IFS=$'\n'
+    results=($(ag "$_regexp")); IFS=$ifs
+
+    _log "results count: ${#results[@]}"
+}
+
+
+#
+# PROGRAMS #
+#
+
+def() {
+    _shift_argv
+    _regexp="^ *def +$arg"
+    _search
+}
+
+
+#############
+# INIT VARS #
+#############
+
+. .blang
+
+_regexp=
+
+arg=
+argc=$#
+argv=("$@")
+
+
+########
+# MAIN #
+########
+# _init
+_process
