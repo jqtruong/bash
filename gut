@@ -187,18 +187,27 @@ fa() {
 log() {
     local cmd=("git log")
     local file=
-    local lim=10
+    local lim=
     local ref=
 
     local format="%C(yellow)%h %Cred%ad %Cblue%an%Cgreen%d %Creset%s"
-    cmd+=("--pretty=format:'$format' --date=format:'%Y-%m-%d %H:%M:%S'")
+    cmd+=(
+        "--pretty=format:'$format'"
+        "--date=format:'%Y-%m-%d %H:%M:%S'"
+    )
 
     while [[ $argc -gt 0 ]] && ! _is_func ${argv[0]}
     do
         case ${argv[0]} in
             find)
                 _shift_argv
-                cmd+=("-S'${argv[0]}'")
+                cmd+=(
+                    "-S'${argv[0]}' --pickaxe-regex"
+                    # "--color-words='${argv[0]}'"
+                    # "--full-diff"
+                    "-p"
+                    "--reverse"
+                )
                 ;;
 
             for|in)
@@ -213,13 +222,13 @@ log() {
 
             *)
                 if [[ ${argv[0]} =~ [[:digit:]]+ ]]
-                then lim=${argv[0]}
+                then cmd+=("-${argv[0]}") # lim=${argv[0]}
                 fi
         esac
         _shift_argv
     done
 
-    cmd+=("-$lim")
+    # cmd+=("-$lim")
     [[ -z $ref ]] || cmd+=("$ref")
     [[ -z $file ]] || cmd+=("-- $file")
     eval ${cmd[@]}
@@ -282,9 +291,9 @@ argv=("$@")
 
 base=$(git rev-parse --show-toplevel)
 addr=$(git config --get remote.origin.url) # git@bitbucket.org:locusdevelopment/data-explorer.git
-url=${addr#git@}              # bitbucket.org:locusdevelopment/data-explorer.git
-url=${url/://}                # bitbucket.org/locusdevelopment/data-explorer.git
-url=https://${url%.git}       # bitbucket.org/locusdevelopment/data-explorer
+url=${addr#git@}                           # bitbucket.org:locusdevelopment/data-explorer.git
+url=${url/://}                             # bitbucket.org/locusdevelopment/data-explorer.git
+url=https://${url%.git}                    # bitbucket.org/locusdevelopment/data-explorer
 
 
 ########

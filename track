@@ -1,33 +1,70 @@
 #!/bin/bash
+#
+# Given a search, let's start with a method, trace all of its references, where
+# it resides - e.g. if it's in a class,- where does that class reside, etc. so
+# i can visually see the code architecture.
+#
+#
+#
+
+
 
 #########
 # FUNCS #
 #########
 
-_init() {
-    ((argc++))
-    argv+=(_search)
+_pager() {
+    local i=$1; ((i--))
+    local ifs=$IFS; IFS=$':'
+    read file lino foo <<< "${_results_raw[i]}"; IFS=$ifs
+    $PAGER -c ":$lino" -c ":let @/='$_keyword' | set hlsearch" "$file"
+    echo; _prompt
+}
+
+_prompt() {
+    len=${#_results[@]}
+    _log "results count: $len"
+
+    if [[ $len > 0 ]]
+    then
+        local i=0
+        for ((i=0; i<len; i++))
+        do echo "$((i+1)). ${_results[i]}"
+        done
+
+        printf "View code? (1-${#_results[@]}) "; read i
+        if [[ $i == "q" ]]
+        then exit
+        else _pager "$i"
+        fi
+    fi
 }
 
 _search() {
-    _log "$_regexp"
+    _log "/$_regexp/"
 
     local ifs=$IFS; IFS=$'\n'
-    results=($(ag "$_regexp")); IFS=$ifs
+    _results_raw=($(ag "$_regexp"))
+    _results=($(ag --color "$_regexp")); IFS=$ifs
 
-    _log "results count: ${#results[@]}"
+    _prompt
 }
-
 
 #
 # PROGRAMS #
 #
 
+commit() {
+
+}
+
 def() {
-    _shift_argv
+    _shift_argv;
+    _keyword=$arg
     _regexp="^ *def +$arg"
     _search
 }
+
 
 
 #############
@@ -36,7 +73,10 @@ def() {
 
 . .blang
 
+_keyword=
 _regexp=
+_results=
+_results_raw=
 
 arg=
 argc=$#
@@ -46,5 +86,5 @@ argv=("$@")
 ########
 # MAIN #
 ########
-# _init
+
 _process
