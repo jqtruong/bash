@@ -5,14 +5,14 @@ _is_func() {
 } >/dev/null
 
 _process() {
-   while [[ $argc -gt 0 ]]
-    do 
+    while [[ $argc -gt 0 ]]
+    do
         if _is_func ${argv[0]}
         then
             func=${argv[0]}; _shift_argv
             echo >&2 "[PROCESS: CALLING $func WITH ${argv[@]}]"
-            $func ${argv[@]} 
-        else       
+            $func ${argv[@]}
+        else
             echo >&2 "[ERROR: func ${argv[0]} does not exist]"
             break
         fi

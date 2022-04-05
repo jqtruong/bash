@@ -128,7 +128,7 @@ co() {
     _shift_argv
     git checkout "$brch"
 
-    # TODO pattern match against branch names
+    # TODO regex match against branch names
 }
 
 del() {
@@ -256,6 +256,10 @@ sub_rm() {
     git config -f ".git/config"                 \
         --remove-section "submodule.$submodule" \
         2> /dev/null
+}
+
+tags() {
+    git tag -l --sort=-v:refname | ggrep -P '\d+\.\d+\.\d+'
 }
 
 url() {
