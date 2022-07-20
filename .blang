@@ -1,8 +1,21 @@
 #!/bin/bash
 
-_is_func() {
-    declare -f $1
-} >/dev/null
+
+#########
+# FUNCS #
+#########
+
+_cycle_argv() {
+    local cmd=
+
+    while [[ $argc -gt 0 ]]
+    do
+        _shift_argv
+        cmd="$@ $arg"
+        _log "$cmd"
+        eval "$cmd"
+    done
+}
 
 _defunc() {
     if [[ $DEBUG ]]
@@ -16,9 +29,42 @@ EOF
     fi
 }
 
-_log(){
-    echo "[LOG: $1]"
+_get_host_from_env() {
+    for e in "${envs[@]}"
+    do
+        read re_env host <<< $e
+        if [[ $1 =~ $re_env ]]
+        then
+            echo $host
+            break
+        fi
+    done
+}
+
+_get_with_key() {
+    echo "$2" | jq -r "$1"
+}
+
+_is_func() {
+    declare -f $1
+} >/dev/null
+
+_log() {
+    echo "[LOG: $*]"
 } >&2
+
+_map_argv() {
+    local list=()
+
+    while [[ $argc -gt 0 ]]
+    do
+        _shift_argv
+        list+=("$@$arg")
+    done
+
+    argv=("${list[@]}")
+    argc=${#argv[@]}
+}
 
 _process() {
     while [[ $argc -gt 0 ]]
@@ -30,10 +76,48 @@ _process() {
             echo >&2 "[PROCESS: CALLING $func WITH ${argv[@]}]"
             $func ${argv[@]}
         else
-            echo >&2 "[ERROR: func ${argv[0]} does not exist]"
+            echo >&2 "[PROCESS: ERROR WITH FUNC; ${argv[0]}?]"
             break
         fi
     done
+}
+
+_run_cmd() {
+    local full_cmd=$(echo ${cmd[@]})
+    _log "$full_cmd"
+    [[ $DRY_RUN ]] || eval "${full_cmd//\&/\\&}"
+}
+
+_search_argv() {
+    local key=$1
+    local count=${2-1}
+    local next= rest=
+
+    arg=
+    for ((i=0; i<argc; i++))
+    do
+        word=${argv[i]}
+        if [[ $word =~ $key ]]
+        then
+            next=$((i+1))
+            # 0 k1 1 v1 2 v2 3 k2 4 v1 5 k3
+            rest=$((next + count))
+            arg="${argv[@]:next:count}"
+            argv=(
+                "${argv[@]:0:i}"
+                "${argv[@]:rest}"
+            )
+            argc=${#argv[@]}
+            break
+        fi
+    done
+}
+
+_set_arg_to_var() {
+    _shift_argv
+
+    _log "setting \$$1 to $arg"
+    eval $1=$arg
 }
 
 _shift_argv() {
@@ -43,3 +127,25 @@ _shift_argv() {
     argv=("${argv[@]:n}")
     argc=$((argc - n))
 }
+
+
+########
+# INIT #
+########
+
+# env=
+# envs=(
+#     $re_stglis stg-lis
+#     $re_stgs   stg
+#     $re_prd    prd
+# )
+#
+# re_stglis="stg[-_]?(l|li|lis)"
+# re_stgs="$re_stglis*(-?[[:digit:]])*"
+# re_prd="pro?d"
+# re_envs="^($re_prd|$re_stgs)\$"
+#
+# pw_keys=(
+#     "$re_stgs stg"
+#     "$re_prd  prd"
+# )

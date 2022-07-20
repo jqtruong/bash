@@ -55,7 +55,27 @@ _search() {
 #
 
 commit() {
+    echo
+}
 
+describe() {
+    # for classes only, for now...
+
+    local old_ifs=$IFS
+
+    _shift_argv
+
+    line=$(gawk 'BEGIN { FS="\t"; IGNORECASE=1 }; $1 ~ /^'$arg'$/ { print $0 }' tags)
+    file=$(echo "$line" | gawk 'BEGIN { FS="\t" }; { print $2 }')
+    sign=$(echo "$line" | gawk 'BEGIN { FS="\t" }; { print $3 }' | gsed -r -e 's/^\/\^//' -e 's/:?\$\/;"$//')
+    IFS=$'\n'
+    methods=($(
+        gawk 'BEGIN { FS="\t"; IGNORECASE=1 }; $4 ~ /m/ && $5 ~ /^class:'$1'$/ { print $3 }' tags |
+            gsed -r -e 's/^\/\^//' -e 's/:?\$\/;"$//'
+    ))
+    echo $file
+    echo $sign
+    printf -- "- %s\n" "${methods[@]}"
 }
 
 def() {
@@ -64,7 +84,6 @@ def() {
     _regexp="^ *def +$arg"
     _search
 }
-
 
 
 #############

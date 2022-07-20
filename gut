@@ -93,13 +93,13 @@ bs() {
 }
 
 commit() {
-    local with_msg=
+    local with_msg=()
 
-    if ! _is_func "${argv[0]}"
-    then
-        with_msg=("-m" "${argv[0]}")
+    while ! _is_func "${argv[0]}"
+    do
+        with_msg+=("-m" "${argv[0]}")
         _shift_argv
-    fi
+    done
 
     git commit "${with_msg[@]}"
 }
@@ -193,6 +193,7 @@ log() {
     local format="%C(yellow)%h %Cred%ad %Cblue%an%Cgreen%d %Creset%s"
     cmd+=(
         "--pretty=format:'$format'"
+        "--abbrev-commit"
         "--date=format:'%Y-%m-%d %H:%M:%S'"
     )
 
@@ -205,8 +206,8 @@ log() {
                     "-S'${argv[0]}' --pickaxe-regex"
                     # "--color-words='${argv[0]}'"
                     # "--full-diff"
-                    "-p"
-                    "--reverse"
+                    # "-p"
+                    # "--reverse"
                 )
                 ;;
 
@@ -231,6 +232,7 @@ log() {
     # cmd+=("-$lim")
     [[ -z $ref ]] || cmd+=("$ref")
     [[ -z $file ]] || cmd+=("-- $file")
+    # echo >&2 "${cmd[@]}"
     eval ${cmd[@]}
 }
 
