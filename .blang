@@ -45,12 +45,18 @@ _get_with_key() {
     echo "$2" | jq -r "$1"
 }
 
+_has_arg() {
+    _search_argv "$1" 0
+}
+
 _is_func() {
-    declare -f $1
+    declare -f "$1"
 } >/dev/null
 
 _log() {
-    echo "[LOG: $*]"
+    local msg=$1 do_exit=$2
+    echo "[LOG: $msg]"
+    [[ -z $do_exit ]] || exit 1
 } >&2
 
 _map_argv() {
@@ -90,19 +96,29 @@ _run_cmd() {
 
 _search_argv() {
     local key=$1
-    local count=${2-1}
-    local next= rest=
+    local count=${2:-1} # i.e. how many args to retrieve
+    local mentioned_func=$([[ -z $func ]] || echo " for $func")
+    local found= next= rest=
 
     arg=
     for ((i=0; i<argc; i++))
     do
-        word=${argv[i]}
-        if [[ $word =~ $key ]]
+        param=${argv[i]}
+        if _is_func $param
         then
+            _log "$FUNCNAME reached next program name: $param"
+            break
+        fi
+
+        if [[ $param =~ $key ]]
+        then
+            found=1
             next=$((i+1))
-            # 0 k1 1 v1 2 v2 3 k2 4 v1 5 k3
             rest=$((next + count))
-            arg="${argv[@]:next:count}"
+            if [[ $count -eq 0 ]]
+            then arg=$param
+            else arg=${argv[@]:next:count}
+            fi
             argv=(
                 "${argv[@]:0:i}"
                 "${argv[@]:rest}"
@@ -111,6 +127,15 @@ _search_argv() {
             break
         fi
     done
+
+    if [[ $found ]]
+    then
+        _log "found $key ($param)$mention_func; set arg to $arg"
+        return 0
+    else
+        _log "$key not found$mention_func"
+        return 255
+    fi
 }
 
 _set_arg_to_var() {
@@ -128,24 +153,12 @@ _shift_argv() {
     argc=$((argc - n))
 }
 
+_unshift_argv() {
+    argv+=("$@")
+    argc=$((argc + $#))
+}
+
 
 ########
 # INIT #
 ########
-
-# env=
-# envs=(
-#     $re_stglis stg-lis
-#     $re_stgs   stg
-#     $re_prd    prd
-# )
-#
-# re_stglis="stg[-_]?(l|li|lis)"
-# re_stgs="$re_stglis*(-?[[:digit:]])*"
-# re_prd="pro?d"
-# re_envs="^($re_prd|$re_stgs)\$"
-#
-# pw_keys=(
-#     "$re_stgs stg"
-#     "$re_prd  prd"
-# )

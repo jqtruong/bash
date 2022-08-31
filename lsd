@@ -1,0 +1,11 @@
+#!/bin/bash
+
+argc=$#
+argv=("$@")
+
+if [[ $argc -eq 0 ]]
+then
+    grep -P '^ *[0-9]+ {2}cd' ~/.bash_history
+    # read -p "index? " i
+    # !$i
+fi

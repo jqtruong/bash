@@ -1,14 +1,17 @@
 #!/bin/bash
+#
+
 
 ########
 # rdy? #
 ########
+
 calc() {
-    bc -l <<< "$@"
+    bc -l <<< "$(parse "$STRING")"
 }
 
 parse() {
-    echo "$@" | sed -E "s/PI|pi/$PI/g" # replace `PI|pi' with its value
+    echo "$@" | sed -E "s/(PI)/$PI/gi"
 }
 
 start() {
@@ -16,30 +19,34 @@ start() {
     do
         echo
         read -ep "Calculator: " STRING
-        STRING=$(parse "$STRING")
-        store "$STRING"
-        calc "$STRING"
+        history -s "$STRING"
+        calc
     done
 }
 
-store() {
-    LAST_STRING="$@"
-    HIST+=("$@")
-    # printf -- "- %s\n" "${HIST[@]}"
-}
 
 ########
 # set. #
 ########
+
+HISTFILE=/tmp/.calc_history
+set -o vi
+
 if [[ -z "$PI" ]]; then
     PI=$(echo "4*a(1)" | bc -l)
 fi
 
-HIST=()
-LAST_STRING=
 STRING=
+
 
 ########
 # go!! #
 ########
+
+# trying to break out of the infinite loop in `start' but having to manually
+# hit enter after Ctrl-C, but at least it writes to the history file...
+trap 'break' INT
+
+history -r $HISTFILE
 start
+history -w $HISTFILE

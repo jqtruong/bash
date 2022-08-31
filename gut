@@ -95,7 +95,7 @@ bs() {
 commit() {
     local with_msg=()
 
-    while ! _is_func "${argv[0]}"
+    while ! _is_func ${argv[0]}
     do
         with_msg+=("-m" "${argv[0]}")
         _shift_argv

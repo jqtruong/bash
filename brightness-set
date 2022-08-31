@@ -1,25 +1,5 @@
 #!/bin/bash -e
 
-ME=$(basename "$BASH_SOURCE")
-
-log() {
-    echo >>/tmp/"$ME".log 2>&1 \
-         "$ME:$(date +"%s"): $1"
-}
-
 bfile=/sys/class/backlight/intel_backlight/brightness
-
-pcent=$(($1%101))
-if [[ $pcent -lt 10 ]]; then
-    echo "$pcent?!"
-    pcent=10
-fi
-
-bval=$(calc scale=0\; $pcent*4437/100)
-log "setting brightness to $pcent% ($bval/4437)"
-if ! $(echo $bval > $bfile); then
-    log "could not set brightness to $pcent%"
-fi
-
-bval=$(<$bfile)
-log "brightness set to $bval/4437 = $(calc scale=2\; $bval/4437)"
+max=$(</sys/class/backlight/intel_backlight/max_brightness)
+[[ $1 -lt 0 || $1 -gt $max ]] || echo $1 > $bfile
