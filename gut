@@ -89,19 +89,28 @@ bl() {
 
 # simplified branch status
 bs() {
-    git status -bs
+    cmd=("git status -bs")
+    _run_cmd
+}
+
+# checkout
+co() {
+    local brch=$(_guess_brch $1)
+
+    _shift_argv
+    git checkout "$brch"
+
+    # TODO regex match against branch names
 }
 
 commit() {
-    local with_msg=()
+    cmd=("git commit")
 
-    while ! _is_func ${argv[0]}
-    do
-        with_msg+=("-m" "${argv[0]}")
-        _shift_argv
+    while _shift_argv && ! _is_func "$arg"
+    do cmd+=("-m \"$arg\"")
     done
 
-    git commit "${with_msg[@]}"
+    _run_cmd
 }
 
 # list where $brch commit is included, within all branches' history
@@ -119,16 +128,6 @@ contains() {
 
     cat $tmp | sort | uniq
     rm $tmp
-}
-
-# checkout
-co() {
-    local brch=$(_guess_brch $1)
-
-    _shift_argv
-    git checkout "$brch"
-
-    # TODO regex match against branch names
 }
 
 del() {

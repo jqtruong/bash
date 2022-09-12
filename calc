@@ -30,7 +30,6 @@ start() {
 ########
 
 HISTFILE=/tmp/.calc_history
-set -o vi
 
 if [[ -z "$PI" ]]; then
     PI=$(echo "4*a(1)" | bc -l)

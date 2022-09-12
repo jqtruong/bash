@@ -89,7 +89,7 @@ _process() {
 
 _run_cmd() {
     local full_cmd="${cmd[@]}"
-    _log "$full_cmd"
+    _log "$([[ -z $DRY_RUN ]] || echo "(DRY_RUN) ")$full_cmd"
     [[ $DRY_RUN ]] || eval "${full_cmd//\&/\\&}"
 }
 
@@ -146,6 +146,10 @@ _set_arg_to_var() {
 
 _shift_argv() {
     local n=${1-1}
+
+    if [[ $argc -lt 1 ]]
+    then return 1
+    fi
 
     arg="${argv[@]:0:n}"
     argv=("${argv[@]:n}")
