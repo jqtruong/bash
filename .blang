@@ -12,8 +12,7 @@ _cycle_argv() {
     do
         _shift_argv
         cmd="$@ $arg"
-        _log "$cmd"
-        eval "$cmd"
+        _run_cmd
     done
 }
 
@@ -89,7 +88,7 @@ _process() {
 }
 
 _run_cmd() {
-    local full_cmd=$(echo ${cmd[@]})
+    local full_cmd="${cmd[@]}"
     _log "$full_cmd"
     [[ $DRY_RUN ]] || eval "${full_cmd//\&/\\&}"
 }
