@@ -1,0 +1,17 @@
+#!/usr/bin/bc -l
+# 
+# semi colons are not needed but otherwise `bc-mode' doesn't indent properly.
+
+pi = 4 * a(1);
+
+define ceil(f) {
+  auto g;
+  
+  scale = 0;
+  g = f/1;
+  if (f == g) {
+    return g;
+  } else {
+    return g + 1;
+  }
+}

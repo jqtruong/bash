@@ -5,19 +5,19 @@
 # FUNCS #
 #########
 
-_cycle_argv() {
+-cycle-argv() {
     local cmd=
 
     while [[ $argc -gt 0 ]]
     do
-        _shift_argv
+        -shift-argv
         cmd="$@ $arg"
-        _run_cmd
+        -run-cmd
     done
 }
 
 
-_defunc() {
+-defunc() {
     if [[ $DEBUG ]]
     then cat <<EOF
 
@@ -29,17 +29,20 @@ EOF
     fi
 }
 
+-dry() {
+    DRY_RUN=1
+}
 
-_exit() {
-    _log "$1" "exit? yes."
+-exit() {
+    -log "$1" "exit? yes."
 }
 
 
-_get_host_from_env() {
+-get-host-from-env() {
     for e in "${envs[@]}"
     do
-        read re_env host <<< $e
-        if [[ $1 =~ $re_env ]]
+        read re-env host <<< $e
+        if [[ $1 =~ $re-env ]]
         then
             echo $host
             break
@@ -48,22 +51,22 @@ _get_host_from_env() {
 }
 
 
-_get_with_key() {
+-get-with-key() {
     echo "$2" | jq -r "$1"
 }
 
 
-_has_arg() {
-    _search_argv "$1" 0
+-has-arg() {
+    -search-argv "$1" 0
 }
 
 
-_has_prog() {
+-has-prog() {
     for key in "${argv[@]}"
     do
         if [[ $key =~ $1 ]]
         then
-            _log "key '$key' is a prog matching '$1'"
+            -log "key '$key' is a prog matching '$1'"
             return 0
         fi
     done
@@ -72,24 +75,24 @@ _has_prog() {
 }
 
 
-_is_func() {
-    declare -f "$1"
+-is-func() {
+    declare -f -- "$1"
 } >/dev/null
 
 
-_log() {
-    local msg=$1 do_exit=$2
+-log() {
+    local msg=$1 _exit=$2
     echo "[LOG: $msg]"
-    [[ -z $do_exit ]] || exit 1
+    [[ -z $_exit ]] || exit 1
 } >&2
 
 
-_map_argv() {
+-map-argv() {
     local list=()
 
     while [[ $argc -gt 0 ]]
     do
-        _shift_argv
+        -shift-argv
         list+=("$@$arg")
     done
 
@@ -98,36 +101,35 @@ _map_argv() {
 }
 
 
-_process() {
-    _process_argv
-}
-
-
-_process_argv() {
-    while _shift_argv
+-process() {
+    [[ $# -eq 0 ]] || {
+        argc=$#
+        argv=("$@")
+    }
+    while -shift-argv
     do
-        if _is_func "$arg"
+        if -is-func "$arg"
         then
             func=$arg
             echo >&2 "[PROCESS: CALLING $func WITH ${argv[@]}]"
             $func ${argv[@]}
         else
-            echo >&2 "[PROCESS: ERROR WITH FUNC; ${argv[0]}?]"
+            echo >&2 "[PROCESS: ERROR WITH FUNC; $arg?]"
             break
         fi
     done
 }
 
 
-_run_cmd() {
+-run-cmd() {
     local full_cmd=${cmd[@]}
-    _log "$([[ -z $DRY_RUN ]] || echo "(DRY_RUN) ")$(eval "echo \"$full_cmd\"")"
+    -log "$([[ -z $DRY_RUN ]] || echo "(DRY_RUN) ")$(eval "echo \"$full_cmd\"")"
     [[ $DRY_RUN ]] || eval "$full_cmd"
     cmd=()
 }
 
 
-_search_argv() {
+-search-argv() {
     local key=$1
     local count=${2:-1}                     # i.e. how many args to retrieve
     local found= next= rest=
@@ -136,9 +138,9 @@ _search_argv() {
     for ((i=0; i<argc; i++))
     do
         param=${argv[i]}
-        if _is_func $param
+        if -is-func $param
         then
-            _log "$FUNCNAME reached next program name: $param"
+            -log "$FUNCNAME reached next program name: $param"
             break
         fi
 
@@ -162,36 +164,39 @@ _search_argv() {
 
     if [[ $found ]]
     then
-        _log "found $key ($param)$mention_func; set arg to $arg"
+        -log "found $key ($param)$mention_func; set arg to $arg"
         return 0
     else
-        _log "$key not found$mention_func"
+        -log "$key not found$mention_func"
         return 255
     fi
 }
 
 
-_set_arg_to_var() {
-    _shift_argv_into_var
+-set-arg-to-var() {
+    -shift-argv-into
 }
 
 
-_shift_argv_into_var() {
-    _shift_argv
+-shift-argv-into() {
+    -shift-argv
 
-    _log "setting \$$1 to $arg"
-    eval $1=$arg
+    -log "setting \$$1 to $arg"
+    eval "$1=$arg"
 }
 
 
-_shift_argv() {
+-shift-argv() {
+    -shift-argv "$@"
+}
+
+-shift-argv() {
     local n=${1-1}
 
     if [[ $argc -lt 1 ]]
     then
         arg=
         return 1
-
     else
         arg="${argv[@]:0:n}"
         argv=("${argv[@]:n}")
@@ -200,7 +205,7 @@ _shift_argv() {
 }
 
 
-_unshift_argv() {
+-unshift-argv() {
     argv+=("$@")
     argc=$((argc + $#))
 }
@@ -209,3 +214,5 @@ _unshift_argv() {
 ########
 # INIT #
 ########
+
+[[ $# -eq 0 ]] || -process "$@"

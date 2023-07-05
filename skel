@@ -1,0 +1,25 @@
+#!/bin/bash
+
+
+########
+# rdy? #
+########
+
+# verbs #
+
+
+########
+# set. #
+########
+
+source .blang
+argc=$#
+argv=("$@")
+cmd=()
+
+########
+# go!! #
+########
+
+_process_argv
+_run_cmd

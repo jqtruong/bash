@@ -1,0 +1,5 @@
+#!/bin/bash
+
+sudo pacman -S \
+  sway alacritty waybar wofi \
+  xorg-xwayland xorg-xlsclients qt5-wayland glfw-wayland

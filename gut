@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# see https://stackoverflow.com/a/30360954/578870 for untracking files
+
 #########
 # FUNCS #
 #########
